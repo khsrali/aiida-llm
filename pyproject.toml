@@ -1,0 +1,58 @@
+[build-system]
+build-backend = 'flit_core.buildapi'
+requires = ['flit_core >=3.4,<4']
+
+[project]
+authors = [{name = 'Ali Khosravi', email = 'khsrali@gmail.com'}]
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+  'Framework :: AiiDA',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: POSIX :: Linux',
+  'Operating System :: MacOS :: MacOS X',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3.13',
+  'Topic :: Scientific/Engineering'
+]
+#  'aiida-core>=2.6',
+dependencies = [
+  'click-spinner~=0.1.8',
+  'click~=8.1.0',
+  'faiss-cpu~=1.11',
+  'sentence_transformers~=4.1',
+]
+description = 'An LLM tool for an even easier use of AiiDA.'
+dynamic = ['version']  # read from aiida_llm/__init__.py
+keywords = ['aiida', 'llm']
+license = {file = 'LICENSE.txt'}
+name = 'aiida-llm'
+readme = 'README.md'
+requires-python = '>=3.9'
+
+[project.scripts]
+verdi-cli = 'aiida_llm.cmd.cmd_llm:verdi_llm'
+
+
+[project.optional-dependencies]
+docs = [
+  'pydata-sphinx-theme~=0.15.1',
+  'sphinx~=7.2.0',
+  'sphinx-copybutton~=0.5.0',
+  'sphinx-design~=0.5.0',
+  'sphinx-notfound-page~=1.0',
+  'sphinxext-rediraffe~=0.2.4',
+  'sphinx-sqlalchemy~=0.2.0',
+  'sphinx-intl~=2.1.0',
+  'myst-nb~=1.0.0'
+]
+pre-commit = [
+  'mypy~=1.13.0',
+  'packaging~=23.0',
+  'pre-commit~=3.5',
+  'tomli',
+  'types-PyYAML'
+]
