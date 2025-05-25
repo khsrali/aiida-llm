@@ -136,7 +136,7 @@ def smart_configure(ctx, backend, api_key):
     )
 
 
-@verdi_llm.command("llm")
+@verdi_llm.command("cli")
 @click.argument("something-to-ask", type=str)
 @load_smart_config
 def smart_generate(backend, api_key, something_to_ask):
