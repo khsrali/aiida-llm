@@ -167,6 +167,8 @@ async def process_command(command_path, semaphore, entries):
     # Process options concurrently
     for option in options:
         flags = [f.strip() for f in option["flags"].split(",")]
+        if "-h" in flags:
+            continue
         combined_flags = " / ".join(flags)
         full_command = "verdi " + " ".join(command_path + [combined_flags])
         entry = {
