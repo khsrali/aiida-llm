@@ -1,4 +1,4 @@
-# aiida-llm
+# verdi-llm
 
 <br>
 <div align="left">
