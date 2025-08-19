@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 import click
 
-from .llm_backend import LLM_DIRECTORY, RAG, groc_command_generator
+from .llm_backend import LLM_DIRECTORY, RAG, groc_command_generator, executor_engine
 
 
 @click.group("verdi-llm")
@@ -145,21 +145,41 @@ def smart_generate(backend, api_key, something_to_ask):
     start_time = time()
     if backend == "groq":
         suggestion = groc_command_generator(something_to_ask, api_key)
-        click.echo(
-            f"Generated command (in {time()-start_time:.1f} seconds): `{suggestion}`\n"
+        print(
+            f"💡 Suggested command (in {time()-start_time:.1f} seconds): \n{suggestion}\n"
         )
-        action = click.prompt("Execute[e], Modify[m], or Cancel[c]:")
-        if action.lower() == "e":
-            command = suggestion
-            _execute_command(command)
-        elif action.lower() == "m":
-            command = click.prompt("Please modify the command:")
-            _execute_command(command)
-        elif action.lower() == "c":
-            click.echo("Command cancelled.")
-        else:
-            click.echo("Invalid option. Command cancelled.")
+        executor_engine(suggestion, _execute_command)
+        # action = input("\n[E]xecute, [M]odify, [C]ancel? ")
+        # if action.lower() == "e":
+        #     command = suggestion
+        #     _execute_command(command)
+        # elif action.lower() == "m":
+        #     command = input("Enter modified command: ")
+        #     _execute_command(command)
+        # elif action.lower() == "c":
+        #     print("Operation cancelled.")
+        # else:
+        #     print("Please enter E, M, or C")
     else:
         click.echo(
             "No valid backend found. Please run `verdi smart configure` to set up a backend."
+        )
+
+
+@verdi_llm.command("shell")
+def smart_shell():
+    """Launch an interactive shell with pre-loaded LLM capabilities."""
+    import sys
+    from pathlib import Path
+
+    # Import and run the shell
+    shell_script = Path(__file__).parent / "verdi_llm_shell.py"
+
+    if shell_script.exists():
+        import subprocess
+
+        subprocess.run([sys.executable, str(shell_script)])
+    else:
+        click.echo(
+            "Shell script not found. Please ensure verdi_llm_shell.py is in the same directory."
         )

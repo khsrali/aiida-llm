@@ -22,9 +22,8 @@ from pathlib import Path
 import click
 import numpy as np
 import requests
-from faiss import IndexFlatIP, read_index, write_index  # type: ignore[import-untyped]
-from sentence_transformers import SentenceTransformer
-
+from time import time
+from typing import Callable
 
 LLM_DIRECTORY = Path.home() / ".aiida" / "llm"
 VERDI_CLI_MAP = Path(__file__).resolve().parent / "verdi_cli.json"
@@ -34,6 +33,8 @@ __all__ = ["LLM_DIRECTORY", "RAG", "groc_command_generator", "VERDI_CLI_MAP"]
 
 class RAG:
     def __init__(self):
+        from sentence_transformers import SentenceTransformer
+
         self.json_path = VERDI_CLI_MAP
 
         # Load the JSON file
@@ -55,6 +56,8 @@ class RAG:
         """Load or generate embeddings with caching.
         Assigns the embeddings and index to self.embeddings and self.index.
         """
+
+        from faiss import read_index
 
         embeddings_path = LLM_DIRECTORY / "rag_embeddings.npy"
         index_path = LLM_DIRECTORY / "rag.index"
@@ -82,6 +85,8 @@ class RAG:
             f"{entry['command']}\nUsage: {entry['usage']}\nDescription: {entry['description']}"
             for entry in self.data
         ]
+
+        from faiss import IndexFlatIP, write_index
 
         self.embeddings = self.model.encode(texts, normalize_embeddings=True)
         self.index = IndexFlatIP(self.embeddings.shape[1])
@@ -160,3 +165,22 @@ def groc_command_generator(sentence, api_key):
             f"Failed to generate command: {response.status_code} - {response.text}"
         )
         return None
+
+
+def executor_engine(command: str, executor: Callable):
+
+    while True:
+        action = input("\n[E]xecute, [M]odify, [C]ancel? ").lower().strip()
+        if action.lower() == "e":
+            executor(command)
+            break
+        elif action.lower() == "m":
+            modified = input("Enter modified command: ").strip()
+            if modified:
+                executor(modified)
+            break
+        elif action.lower() == "c":
+            print("Operation cancelled.")
+            break
+        else:
+            print("Please enter E, M, or C")
