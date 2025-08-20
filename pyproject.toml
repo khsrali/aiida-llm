@@ -26,15 +26,15 @@ dependencies = [
   'sentence_transformers~=4.1',
 ]
 description = 'An LLM tool for an even easier use of AiiDA.'
-dynamic = ['version']  # read from aiida_llm/__init__.py
-keywords = ['aiida', 'llm']
+dynamic = ['version']  # read from verdi_llm/__init__.py
+keywords = ['aiida', 'llm', 'verdi']
 license = {file = 'LICENSE.txt'}
-name = 'aiida-llm'
+name = 'verdi-llm'
 readme = 'README.md'
 requires-python = '>=3.9'
 
 [project.scripts]
-verdi-llm = 'aiida_llm.cmd.cmd_llm:verdi_llm'
+verdi-llm = 'verdi_llm.cli.cmd_llm:verdi_llm'
 
 
 [project.optional-dependencies]

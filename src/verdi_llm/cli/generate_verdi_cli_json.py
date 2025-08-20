@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 
 VERDI_CLI_MAP = Path(__file__).resolve().parent / "verdi_cli.json"
+CONCURRENCY_LIMIT = 10  # Adjust based on your system capabilities
+
 __all__ = ["VERDI_CLI_MAP"]
 
 
@@ -56,13 +58,6 @@ def parse_options(lines):
     return options
 
 
-# def get_help_output(command_path):
-#     """Run `verdi` with the given command path and --help, returning the output."""
-#     cmd = ['verdi'] + command_path + ['--help']
-#     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-#     return result.stdout
-
-
 def parse_sub_commands(lines):
     """Parse the sub-commands section into a list of command names."""
     sub_commands = []
@@ -83,54 +78,6 @@ def parse_sub_commands(lines):
                 if parts:
                     sub_commands.append(parts[0].strip())
     return sub_commands
-
-
-# def process_command(command_path):
-#     """Process a command and its sub-commands recursively."""
-#     help_text = get_help_output(command_path)
-#     lines = help_text.split('\n')
-#     usage = parse_usage(lines)
-#     description = parse_description(lines)
-#     options = parse_options(lines)
-#     sub_commands = parse_sub_commands(lines)
-
-#     # Add entries for each option
-#     for option in options:
-#         flags = [f.strip() for f in option['flags'].split(',')]
-#         combined_flags = ' / '.join(flags)
-#         full_command = 'verdi ' + ' '.join(command_path + [combined_flags])
-#         entry = {
-#             'command': full_command,
-#             'usage': usage,
-#             'description': f"{description} {option['description']}".strip(),
-#         }
-#         entries.append(entry)
-
-#     if not sub_commands:
-#         # Add the command itself without options
-#         full_command = 'verdi ' + ' '.join(command_path)
-#         entry = {'command': full_command, 'usage': usage, 'description': description.strip()}
-#         entries.append(entry)
-#     else:
-#         # Recursively process sub-commands
-#         for sub_cmd in sub_commands:
-#             process_command(command_path + [sub_cmd])
-
-
-# if __name__ == '__main__':
-#     if argv[1]:
-#         output_file = Path(argv[1])
-#     else:
-#         output_file = Path(__file__).resolve().parent / 'verdi_cli.json'
-
-#     entries: list[dict] = []
-#     process_command([])
-
-#     with open(output_file, 'w') as f:
-#         json.dump(entries, f, indent=2)
-
-
-CONCURRENCY_LIMIT = 10  # Adjust based on your system capabilities
 
 
 async def get_help_output(command_path):
