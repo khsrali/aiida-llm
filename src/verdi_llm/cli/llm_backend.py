@@ -8,12 +8,6 @@
 ###########################################################################
 """The implementation of all llm models for the `verdi smart` command line interface."""
 
-# TODO:
-# This design is subject to change,
-# depending on un-foreseen capability and optimizations and available options of other LLMs.
-# since this is in backend and will not break backward compatibility,
-# I avoid going crazy for now.
-
 import hashlib
 import json
 import os
@@ -119,20 +113,24 @@ class RAG:
 def executor_engine(command: str, executor: Callable):
 
     while True:
-        action = input("\n[E]xecute, [M]odify, [C]ancel? ").lower().strip()
-        if action.lower() == "e":
-            executor(command)
+        try:
+            action = input("\n[E]xecute, [M]odify, [C]ancel? ").lower().strip()
+            if action.lower() == "e":
+                executor(command)
+                break
+            elif action.lower() == "m":
+                modified = input("Enter modified command: ").strip()
+                if modified:
+                    executor(modified)
+                break
+            elif action.lower() == "c":
+                print("Operation cancelled.")
+                break
+            else:
+                print("Please enter E, M, or C")
+        except KeyboardInterrupt:
+            print("^C")
             break
-        elif action.lower() == "m":
-            modified = input("Enter modified command: ").strip()
-            if modified:
-                executor(modified)
-            break
-        elif action.lower() == "c":
-            print("Operation cancelled.")
-            break
-        else:
-            print("Please enter E, M, or C")
 
 
 def groc_command_generator(sentence, api_key):
@@ -170,9 +168,11 @@ def groc_command_generator(sentence, api_key):
                 "role": "system",
                 "content": "You are a helpful assistant that generates valid verdi commands."
                 "Only and only respond with the complete command starting with 'verdi', absolutely not a word more. "
-                "Do not include optional flags if not explicitly needed. "
-                "Do not invent flags, if you don't find them explicitly in the listed options."
-                "If your confidence in the answer is low, just say: 'I don't know'.",
+                "Do not overly include optional flags if not explicitly needed. "
+                "Do not invent flags, if you don't find them explicitly in the listed options. "
+                "If your confidence in the answer is low, just say: 'I don't know'."
+                "Remember several arguments after a flag must be separated by spaces never a commas (,) for example: "
+                "'--computer C1, C2' is wrong, but '--computer C1 C2' is correct.",
             },
             {
                 "role": "user",
