@@ -9,12 +9,42 @@ CONCURRENCY_LIMIT = 10  # Adjust based on your system capabilities
 __all__ = ["VERDI_CLI_MAP"]
 
 
-def parse_usage(lines):
-    """Extract the usage line from the help text."""
+def parse_usage_and_required_args(lines):
+    """Extract the usage line and required arguments from the help text."""
+    usage_line = ""
+    required_args = []
+
     for line in lines:
         if line.startswith("Usage: "):
-            return line[len("Usage: ") :].strip()
-    return ""
+            usage_line = line[len("Usage: ") :].strip()
+            break
+
+    if usage_line:
+        # Extract required arguments (uppercase words in usage that aren't OPTIONS, COMMAND, ARGS)
+        # Pattern to find uppercase words that are likely required arguments
+        args_pattern = r"\b([A-Z][A-Z_]*)\b"
+        potential_args = re.findall(args_pattern, usage_line)
+
+        # Filter out common CLI patterns that aren't actual arguments
+        exclude_patterns = {"OPTIONS", "COMMAND", "ARGS", "PROFILE"}
+
+        for arg in potential_args:
+            if arg not in exclude_patterns:
+                # Try to infer description based on common patterns
+                if arg == "COMPUTER":
+                    description = "The computer to configure"
+                elif arg == "CODE":
+                    description = f"The {arg.lower()} to use"
+                elif arg == "NODE":
+                    description = f"The {arg.lower()} identifier"
+                elif arg == "GROUP":
+                    description = f"The {arg.lower()} to use"
+                else:
+                    description = f"The {arg.lower()} argument"
+
+                required_args.append(f"{arg}: {description}")
+
+    return usage_line, required_args
 
 
 def parse_description(lines):
@@ -30,7 +60,7 @@ def parse_description(lines):
 
 
 def parse_options(lines):
-    """Parse the options section into a list of flags and descriptions."""
+    """Parse the options section into a list of optional flags and descriptions."""
     options = []
     in_options = False
     current_option = None
@@ -51,10 +81,21 @@ def parse_options(lines):
                 parts = re.split(r"\s{2,}", stripped_line, 1)
                 flags = parts[0].strip()
                 desc = parts[1].strip() if len(parts) > 1 else ""
-                current_option = {"flags": flags, "description": desc}
+
+                # Skip help option
+                if "-h" in flags or "--help" in flags:
+                    continue
+
+                # Format flags nicely
+                flag_parts = [f.strip() for f in flags.split(",")]
+                formatted_flags = " / ".join(flag_parts)
+
+                current_option = f"{formatted_flags}: {desc}"
                 options.append(current_option)
             elif current_option and stripped_line:
-                current_option["description"] += " " + stripped_line
+                # Continue description on next line
+                options[-1] += " " + stripped_line
+
     return options
 
 
@@ -106,44 +147,30 @@ async def process_command(command_path, semaphore, entries):
         return
 
     lines = help_text.split("\n")
-    usage = parse_usage(lines)
+    usage, required_args = parse_usage_and_required_args(lines)
     description = parse_description(lines)
     options = parse_options(lines)
     sub_commands = parse_sub_commands(lines)
 
-    # Process options concurrently
-    for option in options:
-        flags = [f.strip() for f in option["flags"].split(",")]
-        if "-h" in flags:
-            continue
-        combined_flags = " / ".join(flags)
-        full_command = "verdi " + " ".join(command_path + [combined_flags])
-        entry = {
-            "command": full_command,
-            "usage": usage,
-            "description": f"{description} {option['description']}".strip(),
-        }
-        entries.append(entry)
-
-    # Process sub-commands concurrently
-    sub_tasks = []
+    # Process sub-commands recursively
     if sub_commands:
+        sub_tasks = []
         for sub_cmd in sub_commands:
             sub_tasks.append(
                 process_command(command_path + [sub_cmd], semaphore, entries)
             )
-    else:
-        full_command = "verdi " + " ".join(command_path)
-        entries.append(
-            {
-                "command": full_command,
-                "usage": usage,
-                "description": description.strip(),
-            }
-        )
-
-    if sub_tasks:
         await asyncio.gather(*sub_tasks)
+    else:
+        # This is a leaf command - create an entry
+        full_command = "verdi " + " ".join(command_path)
+
+        entry = {
+            "command_usage": usage,
+            "description": description.strip(),
+            "required_arguments": required_args,
+            "options": options,
+        }
+        entries.append(entry)
 
 
 async def main():

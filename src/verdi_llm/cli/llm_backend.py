@@ -82,7 +82,8 @@ class RAG:
             )
 
         texts = [
-            f"{entry['command']}\nUsage: {entry['usage']}\nDescription: {entry['description']}"
+            f"Command and Usage{entry['command_usage']}\nDescription: {entry['description']}\n"
+            f"Required Arguments: {entry['required_arguments']}\nOptions: {entry['options']}\n"
             for entry in self.data
         ]
 
@@ -115,6 +116,25 @@ class RAG:
         return sorted(results, key=lambda x: x["score"], reverse=True)
 
 
+def executor_engine(command: str, executor: Callable):
+
+    while True:
+        action = input("\n[E]xecute, [M]odify, [C]ancel? ").lower().strip()
+        if action.lower() == "e":
+            executor(command)
+            break
+        elif action.lower() == "m":
+            modified = input("Enter modified command: ").strip()
+            if modified:
+                executor(modified)
+            break
+        elif action.lower() == "c":
+            print("Operation cancelled.")
+            break
+        else:
+            print("Please enter E, M, or C")
+
+
 def groc_command_generator(sentence, api_key):
     """Generate a command using the Groq LLM."""
 
@@ -122,11 +142,20 @@ def groc_command_generator(sentence, api_key):
 
     # Retrieve relevant information
     results = rag.retrieve(sentence, k=3)
-    context_str = "\n\n".join(
-        f"Score: {entry['score']}\nCommand: {entry['command']}\n"
-        f"Usage: {entry['usage']}\nDescription: {entry['description']}"
-        for entry in results
-    )
+
+    context_str = "\n\n"
+    for entry in results:
+        if entry["required_arguments"]:
+            ra = f"\nRequired Arguments: {entry['required_arguments']}"
+        else:
+            ra = "No Required Arguments"
+        context_str += (
+            f"RAG Score: {entry['score']}\n"
+            f"Command and Usage: {entry['command_usage']}\n"
+            f"Description: {entry['description']}\n"
+            f"ra"
+            f"Options: {entry['options']}\n\n"
+        )
 
     # print(f"Context: {context_str}")
 
@@ -140,7 +169,9 @@ def groc_command_generator(sentence, api_key):
             {
                 "role": "system",
                 "content": "You are a helpful assistant that generates valid verdi commands."
-                "Only respond with the complete command starting with 'verdi'.",
+                "Only respond with the complete command starting with 'verdi'. "
+                "Do not include optional flags if not explicitly needed. "
+                "Do not invent flags, if you don't find them explicitly in the listed options.",
             },
             {
                 "role": "user",
@@ -165,22 +196,3 @@ def groc_command_generator(sentence, api_key):
             f"Failed to generate command: {response.status_code} - {response.text}"
         )
         return None
-
-
-def executor_engine(command: str, executor: Callable):
-
-    while True:
-        action = input("\n[E]xecute, [M]odify, [C]ancel? ").lower().strip()
-        if action.lower() == "e":
-            executor(command)
-            break
-        elif action.lower() == "m":
-            modified = input("Enter modified command: ").strip()
-            if modified:
-                executor(modified)
-            break
-        elif action.lower() == "c":
-            print("Operation cancelled.")
-            break
-        else:
-            print("Please enter E, M, or C")
