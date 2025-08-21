@@ -33,7 +33,7 @@ if __name__ == "__main__":
     ), f'GITHUB_REF should start with "refs/tags/v": {args.GITHUB_REF}'
     tag_version = args.GITHUB_REF[11:]
     pypi_version = get_version_from_module(
-        Path("src/aiida/__init__.py").read_text(encoding="utf-8")
+        Path("src/verdi_llm/__init__.py").read_text(encoding="utf-8")
     )
     assert (
         tag_version == pypi_version
