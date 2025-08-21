@@ -95,7 +95,7 @@ def load_smart_config(func):
 def smart_configure(ctx, backend, api_key):
     """Choose and configure an LLM backend."""
 
-    # Step 1: Setup the credentials
+    # Setup the credentials
     click.echo(
         "This command will help you choose and configure an LLM backend for AiiDA.\n"
     )
@@ -111,25 +111,18 @@ def smart_configure(ctx, backend, api_key):
         click.echo(f"Step #2 Enter your API key for {backend_choice}:")
         api_key = _prompt("Your API key")
 
-    # This is a temporary solution to store the configuration.
-    # Just for proof of concept and testing purposes.
-    # TODO: properly and safely store this data after merging this PR:
-    # https://github.com/aiidateam/aiida-core/pull/6761
-
     config_file = LLM_DIRECTORY / "config.json"
     config_file.parent.mkdir(parents=True, exist_ok=True)
 
     config_data = {"backend": backend_choice, "api_key": api_key}
     with config_file.open("w") as f:
-        # Overwrites
         json.dump(config_data, f)
 
     click.echo(
         f"Configuration saved to {config_file}. You can change it later by editing this file.\n"
     )
 
-    # Step 2: build the or embeddings
-    RAG()
+    RAG()  # Build the or embeddings
 
     click.echo(
         "You can now use the `verdi smart` command to interact with the LLM backend.\n"
@@ -162,23 +155,19 @@ def smart_shell():
     import signal
     from pathlib import Path
 
-    # Import and run the shell
     shell_script = Path(__file__).parent / "verdi_llm_shell.py"
 
     if shell_script.exists():
         import subprocess
 
-        # Save the original SIGINT handler
         original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
-            # Run the subprocess with preexec_fn to reset SIGINT in the child
             subprocess.run(
                 [sys.executable, str(shell_script)],
                 preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL),
             )
         finally:
-            # Restore the original SIGINT handler
             signal.signal(signal.SIGINT, original_sigint_handler)
     else:
         click.echo(

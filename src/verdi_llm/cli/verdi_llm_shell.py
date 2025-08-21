@@ -40,7 +40,7 @@ class VerdiLLMShell:
             print("   You can still use the shell for regular commands.")
 
         print("\n🎯 verdi-llm shell ready!")
-        print("   - Use 'llm <your question>' for AI assistance")
+        print("   - Use 'cli <your question>' for AI assistance")
         print("   - Use arrow keys for command history")
         print("   - Type 'exit' or Ctrl+D to quit\n")
 
@@ -145,13 +145,13 @@ class VerdiLLMShell:
                 # Handle special commands
                 if command in ["exit", "quit"]:
                     break
-                elif command.startswith("llm "):
-                    # Extract the query after 'llm '
+                elif command.startswith("cli "):
+                    # Extract the query after 'cli '
                     query = command[4:].strip()
                     if query:
                         self.handle_llm_command(query)
                     else:
-                        print("Usage: llm <your question>")
+                        print("Usage: cli <your question>")
                 elif command.startswith("cd "):
                     # Handle cd specially to change directory in this process
                     try:
