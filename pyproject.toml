@@ -24,6 +24,7 @@ dependencies = [
   'click~=8.1.0',
   'faiss-cpu~=1.11',
   'sentence_transformers~=4.1',
+  'readline>=6.0',
 ]
 description = 'An LLM tool for an even easier use of AiiDA.'
 dynamic = ['version']  # read from verdi_llm/__init__.py
