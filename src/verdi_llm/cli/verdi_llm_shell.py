@@ -114,7 +114,7 @@ class VerdiLLMShell:
             if result.returncode != 0:
                 print(f"Command exited with code {result.returncode}")
         except KeyboardInterrupt:
-            print("\n^C")
+            print()
         except Exception as e:
             print(f"Error executing command: {e}")
 
@@ -136,11 +136,10 @@ class VerdiLLMShell:
                 try:
                     command = input(prompt).strip()
                 except KeyboardInterrupt:
-                    print()  # Just print newline and continue
+                    print("^C")
                     continue
 
                 if not command:
-                    print()
                     continue
 
                 # Handle special commands
@@ -180,6 +179,3 @@ class VerdiLLMShell:
 if __name__ == "__main__":
     shell = VerdiLLMShell()
     shell.run()
-
-
-# follow the chat on Cluade to produce a better rag data!!

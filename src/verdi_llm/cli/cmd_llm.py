@@ -149,17 +149,6 @@ def smart_generate(backend, api_key, something_to_ask):
             f"💡 Suggested command (in {time()-start_time:.1f} seconds): \n{suggestion}\n"
         )
         executor_engine(suggestion, _execute_command)
-        # action = input("\n[E]xecute, [M]odify, [C]ancel? ")
-        # if action.lower() == "e":
-        #     command = suggestion
-        #     _execute_command(command)
-        # elif action.lower() == "m":
-        #     command = input("Enter modified command: ")
-        #     _execute_command(command)
-        # elif action.lower() == "c":
-        #     print("Operation cancelled.")
-        # else:
-        #     print("Please enter E, M, or C")
     else:
         click.echo(
             "No valid backend found. Please run `verdi smart configure` to set up a backend."
@@ -170,6 +159,7 @@ def smart_generate(backend, api_key, something_to_ask):
 def smart_shell():
     """Launch an interactive shell with pre-loaded LLM capabilities."""
     import sys
+    import signal
     from pathlib import Path
 
     # Import and run the shell
@@ -178,7 +168,18 @@ def smart_shell():
     if shell_script.exists():
         import subprocess
 
-        subprocess.run([sys.executable, str(shell_script)])
+        # Save the original SIGINT handler
+        original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+        try:
+            # Run the subprocess with preexec_fn to reset SIGINT in the child
+            subprocess.run(
+                [sys.executable, str(shell_script)],
+                preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL),
+            )
+        finally:
+            # Restore the original SIGINT handler
+            signal.signal(signal.SIGINT, original_sigint_handler)
     else:
         click.echo(
             "Shell script not found. Please ensure verdi_llm_shell.py is in the same directory."

@@ -169,9 +169,10 @@ def groc_command_generator(sentence, api_key):
             {
                 "role": "system",
                 "content": "You are a helpful assistant that generates valid verdi commands."
-                "Only respond with the complete command starting with 'verdi'. "
+                "Only and only respond with the complete command starting with 'verdi', absolutely not a word more. "
                 "Do not include optional flags if not explicitly needed. "
-                "Do not invent flags, if you don't find them explicitly in the listed options.",
+                "Do not invent flags, if you don't find them explicitly in the listed options."
+                "If your confidence in the answer is low, just say: 'I don't know'.",
             },
             {
                 "role": "user",
