@@ -136,8 +136,10 @@ def smart_generate(backend, api_key, something_to_ask):
     """Generate a command based on a natural language something-to-ask."""
 
     start_time = time()
+    rag = RAG()
+
     if backend == "groq":
-        suggestion = groc_command_generator(something_to_ask, api_key)
+        suggestion = groc_command_generator(rag, something_to_ask, api_key)
         print(
             f"💡 Suggested command (in {time()-start_time:.1f} seconds): \n{suggestion}\n"
         )
@@ -148,8 +150,13 @@ def smart_generate(backend, api_key, something_to_ask):
         )
 
 
+@click.option(
+    "--skip-confirm/--no-skip-confirm",
+    default=False,
+    help="Skip confirmation for executing read-only commands.",
+)
 @verdi_llm.command("shell")
-def smart_shell():
+def smart_shell(skip_confirm):
     """Launch an interactive shell with pre-loaded LLM capabilities."""
     import sys
     import signal
@@ -163,8 +170,11 @@ def smart_shell():
         original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
 
         try:
+            cmd = [sys.executable, str(shell_script)]
+            if skip_confirm:
+                cmd.append("--skip-confirm")
             subprocess.run(
-                [sys.executable, str(shell_script)],
+                cmd,
                 preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL),
             )
         finally:

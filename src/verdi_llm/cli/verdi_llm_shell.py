@@ -11,10 +11,22 @@ import json
 import readline
 import atexit
 from pathlib import Path
+from sys import argv
 
 # Import your existing modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from llm_backend import RAG, groc_command_generator, LLM_DIRECTORY, executor_engine
+
+if len(argv) > 1:
+    if argv[1] in ["--skip-confirm", "-s"]:
+        skip_confirm = True
+    elif argv[1] in ["--no-skip-confirm", "-n"]:
+        skip_confirm = False
+    else:
+        print(f"Unknown argument: {argv[1]}")
+        sys.exit(1)
+else:
+    skip_confirm = False
 
 
 class VerdiLLMShell:
@@ -93,10 +105,10 @@ class VerdiLLMShell:
             return
 
         try:
-            suggestion = groc_command_generator(query, self.config["api_key"])
+            suggestion = groc_command_generator(self.rag, query, self.config["api_key"])
 
             print(f"💡 Suggested command:\n{suggestion}")
-            executor_engine(suggestion, self.execute_command)
+            executor_engine(suggestion, self.execute_command, skip_confirm=skip_confirm)
 
         except Exception as e:
             print(f"❌ Error processing LLM query: {e}")

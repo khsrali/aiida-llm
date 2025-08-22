@@ -110,7 +110,12 @@ class RAG:
         return sorted(results, key=lambda x: x["score"], reverse=True)
 
 
-def executor_engine(command: str, executor: Callable):
+def executor_engine(command: str, executor: Callable, skip_confirm: bool = False):
+
+    if skip_confirm and verify_read_only(command):
+        print(f"Command is read-only, executing without confirmation")
+        executor(command)
+        return
 
     while True:
         try:
@@ -133,10 +138,26 @@ def executor_engine(command: str, executor: Callable):
             break
 
 
-def groc_command_generator(sentence, api_key):
-    """Generate a command using the Groq LLM."""
+def verify_read_only(command: str) -> bool:
+    """Check if the command is read-only."""
 
-    rag = RAG()
+    list_of_danger = [
+        "delete",
+        "remove",
+        "kill",
+        "reset",
+        "clear",
+        "configure",
+        "add",
+        "overwrite",
+    ]
+    if any(danger in command for danger in list_of_danger):
+        return False
+    return True
+
+
+def groc_command_generator(rag, sentence, api_key):
+    """Generate a command using the Groq LLM."""
 
     # Retrieve relevant information
     results = rag.retrieve(sentence, k=3)
@@ -151,7 +172,7 @@ def groc_command_generator(sentence, api_key):
             f"RAG Score: {entry['score']}\n"
             f"Command and Usage: {entry['command_usage']}\n"
             f"Description: {entry['description']}\n"
-            f"ra"
+            f"{ra}"
             f"Options: {entry['options']}\n\n"
         )
 
