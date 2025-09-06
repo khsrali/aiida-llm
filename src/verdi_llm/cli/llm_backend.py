@@ -178,7 +178,8 @@ def groc_command_generator(rag, sentence, api_key):
 
     # print(f"Context: {context_str}")
 
-    model = "llama3-8b-8192"
+    # model = "llama3-8b-8192"
+    model = "llama-3.1-8b-instant"
     endpoint = "https://api.groq.com/openai/v1/chat/completions"
 
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
